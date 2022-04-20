@@ -6,7 +6,6 @@
 #
 # The action downloads the `hub.yml` file from the repository mentioned
 # by the input variables.
-#
 # The action then replaces the special `__TAG__` string inside of the
 # `hub.json` file with the value of the `tag` it received at invocation
 # time.
@@ -28,6 +27,9 @@ on:
       tag:
         description: "Tag identifying policy release"
         required: true
+      oci-target:
+        description: "OCI Target of the released policy"
+        required: true
 
 jobs:
   update-policy:
@@ -35,6 +37,15 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v3
+
+      - name: install kwctl
+        uses: kubewarden/github-actions/kwctl-installer@v1
+
+      - name: generate signature verification file
+        run: kwctl scaffold verification-config > /tmp/verification_config.yaml
+
+      - name: check if policy is signed by Kubewarden organization
+        run: kwctl verify --verification-config-path /tmp/verification_config.yaml  ${{ github.event.inputs.oci-target }}:${{ github.event.inputs.tag}}
 
       - name: Check presence of hub metadata inside of remote repo
         run: |
@@ -47,12 +58,14 @@ jobs:
           curl -L https://github.com/mikefarah/yq/releases/download/v4.7.0/yq_linux_amd64 -o yq
           chmod 755 yq
 
-      - name: fetch policy definition
+      - name: fetch policy definition and marked as trusted
         run: |
           export OUTPUT=$(echo ${{ github.event.inputs.repository }} | sed -e "s|/|:|")
           curl https://raw.githubusercontent.com/${{ github.event.inputs.repository }}/${{ github.event.inputs.tag }}/hub.yml | \
             sed -e "s|__TAG__|${{ github.event.inputs.tag }}|g" | \
-            ./yq eval -j > web/policies/${OUTPUT}.json
+            ./yq eval -j > web/policies/${OUTPUT}.json | \
+            jq ".signed |= true"  web/policies/${OUTPUT}.json > web/policies/${OUTPUT}.json
+            jq ""  web/policies/${OUTPUT}.json
 
       # This is needed otherwise the PR will include the yq binary too
       - name: remove yq
