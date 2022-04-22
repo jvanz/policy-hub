@@ -40,6 +40,8 @@ jobs:
 
       - name: install kwctl
         uses: kubewarden/github-actions/kwctl-installer@v1
+        with:
+          KWCTL_VERSION: v0.3.0
 
       - name: Check presence of hub metadata inside of remote repo
         run: |
