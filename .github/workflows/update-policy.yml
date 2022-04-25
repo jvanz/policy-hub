@@ -64,7 +64,7 @@ jobs:
           curl https://raw.githubusercontent.com/${{ github.event.inputs.repository }}/${{ github.event.inputs.tag }}/hub.yml | \
             sed -e "s|__TAG__|${{ github.event.inputs.tag }}|g" | \
             ./yq eval -j > web/policies/${OUTPUT}.json | \
-            jq ".signed |= true"  web/policies/${OUTPUT}.json
+            jq ".signed |= true"  web/policies/${OUTPUT}.json > web/policies/${OUTPUT}.json
 
       # This is needed otherwise the PR will include the yq binary too
       - name: remove yq
