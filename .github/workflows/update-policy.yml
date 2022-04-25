@@ -78,7 +78,6 @@ jobs:
           branch: 'update-${{ github.event.inputs.repository }}'
           delete-branch: true
           title: 'Track new release of policy ${{ github.event.inputs.repository }}'
-          base: main
           body: |
             Update data source for policy `${{ github.event.inputs.repository }}` to track release `${{ github.event.inputs.tag }}`.
 
