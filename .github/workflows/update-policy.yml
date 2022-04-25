@@ -39,9 +39,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: install kwctl
-        uses: kubewarden/github-actions/kwctl-installer@v1
-        with:
-          KWCTL_VERSION: v0.3.0
+        uses: jvanz/github-actions/kwctl-installer@kwctl-zip-releases
 
       - name: Check presence of hub metadata inside of remote repo
         run: |
@@ -68,7 +66,9 @@ jobs:
         run: kwctl verify --verification-config-path ./verification_config.yaml  ${{ github.event.inputs.oci-target }}:${{ github.event.inputs.tag}}
 
       - name: mark policy as signed
-        run: sleep 1s
+        run: |
+          jq ".signed |= false"  web/policies/${OUTPUT}.json
+          jq "" web/policies/${OUTPUT}.json
 
       # This is needed otherwise the PR will include the yq binary too
       - name: remove yq
