@@ -57,7 +57,7 @@ jobs:
 
       - name: check if policy is signed by Kubewarden organization
         run: |
-          yq  -y --in-place '.allOf[0].owner = "jvanz"' /tmp/verification_config.yaml
+          yq  eval '.allOf[0].owner = "jvanz"' -i /tmp/verification_config.yaml
           kwctl verify --verification-config-path /tmp/verification_config.yaml  ${{ github.event.inputs.oci-target }}:${{ github.event.inputs.tag}}
 
 
