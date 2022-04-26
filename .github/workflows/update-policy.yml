@@ -41,12 +41,6 @@ jobs:
       - name: install kwctl
         uses: kubewarden/github-actions/kwctl-installer@v1
 
-      - name: generate signature verification file
-        run: kwctl scaffold verification-config > /tmp/verification_config.yaml
-
-      - name: check if policy is signed by Kubewarden organization
-        run: kwctl verify --verification-config-path /tmp/verification_config.yaml  ${{ github.event.inputs.oci-target }}:${{ github.event.inputs.tag}}
-
       - name: Check presence of hub metadata inside of remote repo
         run: |
           HTTP_CODE=$(curl --head -s -o /dev/null -w "%{http_code}" \
@@ -57,6 +51,15 @@ jobs:
         run: |
           curl -L https://github.com/mikefarah/yq/releases/download/v4.7.0/yq_linux_amd64 -o yq
           chmod 755 yq
+
+      - name: generate signature verification file
+        run: kwctl scaffold verification-config > /tmp/verification_config.yaml
+
+      - name: check if policy is signed by Kubewarden organization
+        run: |
+          yq  -y --in-place '.allOf[0].owner = "jvanz"' /tmp/verification_config.yaml
+          kwctl verify --verification-config-path /tmp/verification_config.yaml  ${{ github.event.inputs.oci-target }}:${{ github.event.inputs.tag}}
+
 
       - name: fetch policy definition and marked as trusted
         run: |
